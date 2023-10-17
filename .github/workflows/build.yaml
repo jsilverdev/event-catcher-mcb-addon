@@ -1,0 +1,74 @@
+name: Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        type: number
+        default: 1.0.0
+        required: true
+
+env:
+  PROJECT_NAME: event_catcher
+
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+      - name: Setup Nodejs and npm
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+
+      - name: Setup yarn
+        run: npm install -g yarn
+
+      - name: Setup Nodejs with yarn caching
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn
+
+      - name: Build
+        run: yarn run build
+
+      - name: Copy and Create Addon
+        run: |
+          mkdir -r ./.addon/${{ env.PROJECT_NAME}}
+          cp -r scripts ./.addon/${{ env.PROJECT_NAME}}
+          cp -r manifest.json ./.addon/${{ env.PROJECT_NAME}}
+          cd ./.addon/${{ env.PROJECT_NAME}} && zip -qq -r ${{ env.PROJECT_NAME }}.mcaddon .
+          cd ../..
+
+      - name: Get Changelog Entry
+        id: changelog_reader
+        uses: mindsers/changelog-reader-action@v2
+        with:
+          validation_level: error
+          validation_depth: 1
+          version: ${{ github.event.inputs.version }}
+          path: ./CHANGELOG.md
+
+      - name: Create and push tag
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git tag v${{ github.event.inputs.version }}
+          git push origin v${{ github.event.inputs.version }}
+
+      - name: Create and publish release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: v${{ github.event.inputs.version }}
+          artifacts: ".addon/${{ env.PROJECT_NAME}}/${{ env.PROJECT_NAME }}.mcaddon"
+          body: ${{ steps.changelog_reader.outputs.changes }}
+          prerelease: ${{ steps.changelog_reader.outputs.status == 'prereleased' }}
+          draft: ${{ steps.changelog_reader.outputs.status == 'unreleased' }}
