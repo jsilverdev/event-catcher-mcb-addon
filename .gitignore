@@ -7,3 +7,5 @@ lib/
 
 yarn.lock
 scripts/*
+.vscode/
+.addon/

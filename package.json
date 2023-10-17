@@ -1,5 +1,5 @@
 {
-  "name": "chat_interactive",
+  "name": "event_catcher_mcb_addon",
   "version": "1.0.0",
   "description": "Send chats to a specific endpoint",
   "dependencies": {

@@ -1,15 +1,15 @@
 {
   "format_version": 2,
   "header": {
-    "description": "Addon for listen chat events and send to endpoint",
-    "name": "Chat Interact",
+    "description": "Addon for listen events and send to endpoint",
+    "name": "Event Catcher",
     "uuid": "09eb48fe-19f9-4697-b7a8-4a3813bbc2fb",
     "version": [1, 0, 0],
     "min_engine_version": [1, 20, 30]
   },
   "modules": [
     {
-      "description": "Addon for listen chat events and send to endpoint",
+      "description": "Addon for listen events and send to endpoint",
       "type": "script",
       "language": "javascript",
       "uuid": "2dca1ce2-c249-495b-a501-40c534a0c358",
@@ -33,6 +33,7 @@
   ],
   "metadata": {
     "authors": ["JSilverDev"],
-    "license": "MIT"
+    "license": "MIT",
+    "url": "https://github.com/jsilverdev/event-catcher-mcb-addon.git"
   }
 }
