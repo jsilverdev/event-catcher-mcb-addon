@@ -28,12 +28,6 @@ jobs:
       - name: Setup yarn
         run: npm install -g yarn
 
-      - name: Setup Nodejs with yarn caching
-        uses: actions/setup-node@v3
-        with:
-          node-version: "18"
-          cache: yarn
-
       - name: Install dependencies
         run: yarn
 
