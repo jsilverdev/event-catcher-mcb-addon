@@ -1,34 +1,47 @@
 import { world } from "@minecraft/server";
+import { variables } from "@minecraft/server-admin";
 import { http, HttpHeader, HttpRequest, HttpRequestMethod } from "@minecraft/server-net";
 
-world.afterEvents.chatSend.subscribe(async (e) => {
+
+const defaultUrl: String = "http://127.0.0.1:8080";
+let url: String = (variables.get("chat_interact_url") as String | null) ?? defaultUrl;
+if (url == "") {
+    url = defaultUrl;
+}
+
+const headers = [
+    new HttpHeader("Content-Type", "application/json")
+];
+
+world.afterEvents.chatSend.subscribe((e) => {
     const player = e.sender;
     const message = e.message;
 
     if (message.startsWith("!")) {
-        commandInteract();
         return;
     }
 
-    await sendPlayerMessageEndpoint(player.nameTag, message);
+    sendPlayerMessageEndpoint(player.nameTag, message);
 });
 
-const commandInteract = () => { };
-
-const sendPlayerMessageEndpoint = async (playerName: string, message: string) => {
-
+const sendPlayerMessageEndpoint = (playerName: string, message: string) => {
     const body = {
         player: playerName,
         message: message,
     };
-    const headers = [
-        new HttpHeader("Content-Type", "application/json")
-    ];
-    const httpRequest = new HttpRequest("http://10.5.0.10:8080/message-chat");
-    httpRequest.setMethod(HttpRequestMethod.POST);
-    httpRequest.setHeaders(headers);
-    httpRequest.setBody(JSON.stringify(body));
-
-    const res = await http.request(httpRequest);
-    world.sendMessage("Message sended to endpoint");
+    sendPostRequest("message", JSON.stringify(body));
 };
+
+const sendPostRequest = (uri: string, body: string) => {
+    const httpRequest = new HttpRequest(`${url}/${uri}/`);
+    httpRequest.headers = headers;
+    httpRequest.method = HttpRequestMethod.Post;
+    httpRequest.body = body;
+    http.request(httpRequest).then(
+        (res) => {
+            if (res.body.length > 0) {
+                world.sendMessage(res.body);
+            }
+        }
+    );
+}
