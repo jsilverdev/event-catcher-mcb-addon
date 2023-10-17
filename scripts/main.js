@@ -1,6 +1,6 @@
 import { world } from "@minecraft/server";
 
-world.beforeEvents.chatSend.subscribe((e) => {
+world.afterEvents.chatSend.subscribe((e) => {
   const player = e.sender;
   const message = e.message;
 
