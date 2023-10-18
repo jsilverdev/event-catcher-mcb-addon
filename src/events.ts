@@ -21,7 +21,7 @@ export const chatSubscribe = () => {
 }
 
 const handleCommands = (player: Player, command: string) => {
-    if(command == "!home") {
+    if (command == "!home") {
         return goHomeCommand(player);
     }
 
@@ -43,4 +43,24 @@ const goHomeCommand = (player: Player) => {
     } catch (error) {
         player.sendMessage(`Cant go home because: ${error}`);
     }
+}
+
+export const playerEnterToWorldSubscribe = () => {
+    if (url == "") return;
+    world.afterEvents.playerSpawn.subscribe((e) => {
+        const body = {
+            player: e.player.nameTag
+        };
+        sendPostRequest("player/enter", JSON.stringify(body));
+    });
+}
+
+export const playerLeaveToWorldSubscribe = () => {
+    if (url == "") return;
+    world.afterEvents.playerLeave.subscribe((e) => {
+        const body = {
+            player: e.playerName
+        };
+        sendPostRequest("player/leave", JSON.stringify(body));
+    });
 }
