@@ -9,6 +9,7 @@ A server addon for listen certain events an send to an url.
 - Can configure the default url
 - Listen Player Messages
 - Listen !home command to return the spawnpoint
+- Listen Player enter/leave
 
 ## Variables
 
@@ -20,7 +21,7 @@ Define the required variables in the config/default/variables.json
 
 1. `/message/`
 
-   - Sends the json:
+   - Sends a POST with the json:
    ```json
     {
         "player": "playerName",
@@ -28,3 +29,21 @@ Define the required variables in the config/default/variables.json
     }
    ```
    - If receives any content then show in chat
+
+2. `/player/enter/`
+
+   - Sends  a POST with the json:
+   ```json
+    {
+        "player": "playerName",
+    }
+   ```
+
+3. `/player/leave/`
+
+   - Sends a POST with the json:
+   ```json
+    {
+        "player": "playerName",
+    }
+   ```
