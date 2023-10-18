@@ -8,4 +8,4 @@ lib/
 yarn.lock
 scripts/*
 .vscode/
-.addon/
+addon/

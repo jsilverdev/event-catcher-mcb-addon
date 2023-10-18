@@ -36,10 +36,10 @@ jobs:
 
       - name: Copy and Create Addon
         run: |
-          mkdir -p ./.addon/${{ env.PROJECT_NAME}}
-          cp -r scripts ./.addon/${{ env.PROJECT_NAME}}
-          cp -r manifest.json ./.addon/${{ env.PROJECT_NAME}}
-          cd ./.addon/ && zip -qq -r ${{ env.PROJECT_NAME }}.mcaddon ${{ env.PROJECT_NAME }}
+          mkdir -p ./addon/${{ env.PROJECT_NAME}}
+          cp -r scripts ./addon/${{ env.PROJECT_NAME}}
+          cp -r manifest.json ./addon/${{ env.PROJECT_NAME}}
+          cd ./addon/ && zip -qq -r ${{ env.PROJECT_NAME }}.mcaddon ${{ env.PROJECT_NAME }}
           cd ..
 
       - name: Get Changelog Entry
@@ -62,7 +62,7 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           tag: v${{ github.event.inputs.version }}
-          artifacts: ".addon/${{ env.PROJECT_NAME }}.mcaddon"
+          artifacts: "addon/*.mcaddon"
           body: ${{ steps.changelog_reader.outputs.changes }}
           prerelease: ${{ steps.changelog_reader.outputs.status == 'prereleased' }}
           draft: ${{ steps.changelog_reader.outputs.status == 'unreleased' }}
