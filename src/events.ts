@@ -47,9 +47,9 @@ const goHomeCommand = (player: Player) => {
 
 export const playerEnterToWorldSubscribe = () => {
     if (url == "") return;
-    world.afterEvents.playerSpawn.subscribe((e) => {
+    world.afterEvents.playerJoin.subscribe((e) => {
         const body = {
-            player: e.player.nameTag
+            player: e.playerName
         };
         sendPostRequest("player/enter", JSON.stringify(body));
     });
