@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning].
 
 - /
 
+## [1.1.1] - 2023-10-22
+
+### Fixed
+
+- Fix to really listen player enter event
+
 ## [1.1.0] - 2023-10-17
 
 ### Added
