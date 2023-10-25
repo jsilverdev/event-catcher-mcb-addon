@@ -4,8 +4,8 @@
     "description": "Addon for listen events and send to endpoint",
     "name": "Event Catcher",
     "uuid": "09eb48fe-19f9-4697-b7a8-4a3813bbc2fb",
-    "version": [1, 1, 1],
-    "min_engine_version": [1, 20, 30]
+    "version": [1, 1, 2],
+    "min_engine_version": [1, 20, 40]
   },
   "modules": [
     {
@@ -13,14 +13,14 @@
       "type": "script",
       "language": "javascript",
       "uuid": "2dca1ce2-c249-495b-a501-40c534a0c358",
-      "version": [1, 1, 1],
+      "version": [1, 1, 2],
       "entry": "scripts/main.js"
     }
   ],
   "dependencies": [
     {
       "module_name": "@minecraft/server",
-      "version": "1.6.0-beta"
+      "version": "1.7.0-beta"
     },
     {
       "module_name": "@minecraft/server-net",
