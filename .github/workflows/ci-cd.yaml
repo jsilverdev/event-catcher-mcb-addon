@@ -26,6 +26,17 @@ jobs:
             manifest.json
           sparse-checkout-cone-mode: false
 
+      - name: 'Setup jq'
+        uses: dcarbone/install-jq-action@v2
+        with:
+          version: '1.7'
+          force: true
+
+      - name: 'Check jq'
+        run: |
+          which jq
+          jq --version
+
       - name: Check if tag exists
         run: |
           if git rev-parse -q --verify "refs/tags/v${{ github.event.inputs.version }}" >/dev/null; then
