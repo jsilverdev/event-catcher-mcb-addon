@@ -55,8 +55,8 @@ jobs:
 
       - name: Check manifest.json version
         run: |
-          header_version=$(jq -r '.header["version"] | map(tostring) | join(".")' manifest.json)
-          modules_version=$(jq -r '.modules["version"] | map(tostring) | join(".")' manifest.json)
+          header_version=$(jq -r '.header.version | map(tostring) | join(".")' manifest.json)
+          modules_version=$(jq -r '.modules[0].version | map(tostring) | join(".")' manifest.json)
           if [[ "$header_version" != "${{ github.event.inputs.version }}" ]]; then
                   echo "Error: header version ($header_version) in not the same as ${{ github.event.inputs.version }}"
                   exit 1
@@ -68,7 +68,7 @@ jobs:
 
       - name: Check package.json and manifest.json are the same
         run: |
-          min_version=$(jq -r '.header["min_engine_version"] | map(tostring) | join(".")' manifest.json)
+          min_version=$(jq -r '.header.min_engine_version | map(tostring) | join(".")' manifest.json)
           jq -r '.dependencies[] | "\(.module_name) \(.version)"' manifest.json | while read -r module_name version; do
               manifest_version="$version.$min_version"
               package_version=$(jq -r --arg module "$module_name" '.dependencies[$module]' package.json)
