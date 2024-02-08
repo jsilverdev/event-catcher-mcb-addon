@@ -6,6 +6,7 @@ lib/
 .vscode/launch.json
 
 yarn.lock
+package-lock.json
 scripts/*
 .vscode/
 addon/

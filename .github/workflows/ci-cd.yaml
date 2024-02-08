@@ -1,0 +1,127 @@
+name: Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        type: number
+        default: 1.1.4
+        required: true
+
+env:
+  PROJECT_NAME: event_catcher
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          fetch-depth: 0
+          sparse-checkout: |
+            CHANGELOG.md
+            package.json
+            manifest.json
+          sparse-checkout-cone-mode: false
+
+      - name: Check if tag exists
+        run: |
+          if git rev-parse -q --verify "refs/tags/v${{ github.event.inputs.version }}" >/dev/null; then
+            echo "The tag $tag_name already exists in the repository."
+            exit 1
+          fi
+
+      - name: Check Changelog Entry Version
+        id: changelog_reader
+        uses: mindsers/changelog-reader-action@v2
+        with:
+          validation_level: error
+          validation_depth: 1
+          version: ${{ github.event.inputs.version }}
+          path: ./CHANGELOG.md
+
+      - name: Check manifest.json version
+        run: |
+          header_version=$(jq -r '.header.version | map(tostring) | join(".")' manifest.json)
+          modules_version=$(jq -r '.modules.version | map(tostring) | join(".")' manifest.json)
+          if [[ "$header_version" != "${{ github.event.inputs.version }}" ]]; then
+                  echo "Error: header version ($header_version) in not the same as ${{ github.event.inputs.version }}"
+                  exit 1
+          fi
+          if [[ "$modules_version" != "${{ github.event.inputs.version }}" ]]; then
+                  echo "Error: modules version ($modules_version) in not the same as ${{ github.event.inputs.version }}"
+                  exit 1
+          fi
+
+      - name: Check package.json and manifest.json are the same
+        run: |
+          min_version=$(jq -r '.header.min_engine_version | map(tostring) | join(".")' manifest.json)
+          jq -r '.dependencies[] | "\(.module_name) \(.version)"' manifest.json | while read -r module_name version; do
+              manifest_version="$version.$min_version"
+              package_version=$(jq -r --arg module "$module_name" '.dependencies[$module]' package.json)
+              if [[ "$package_version" != "$manifest_version"* ]]; then
+                  echo "Error: The version of $module_name in package.json ($package_version) does not match the expected version ($manifest_version)"
+                  exit 1
+              fi
+              echo "The version of $module_name in package.json ($package_version) match with the expected version ($manifest_version)"
+          done
+  cd:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+      - name: Get Changelog Entry
+        id: changelog_reader
+        uses: mindsers/changelog-reader-action@v2
+        with:
+          validation_level: error
+          validation_depth: 1
+          version: ${{ github.event.inputs.version }}
+          path: ./CHANGELOG.md
+
+      - name: Setup Nodejs and npm
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+
+      - name: Install dependencies
+        run: npm i
+
+      - name: Build
+        run: npm run build
+
+      - name: Create mcaddon file
+        run: |
+          mkdir -p ./addon/${{ env.PROJECT_NAME}}
+          cp -r scripts ./addon/${{ env.PROJECT_NAME}}
+          cp -r manifest.json ./addon/${{ env.PROJECT_NAME}}
+          cd ./addon/ && zip -qq -r ${{ env.PROJECT_NAME }}.mcaddon ${{ env.PROJECT_NAME }}
+          cd ..
+
+      - name: Create and push tag
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git tag v${{ github.event.inputs.version }}
+          git push origin v${{ github.event.inputs.version }}
+
+      - name: Prepare to release in artifact
+        run: |
+          mv ./addon/${{ env.PROJECT_NAME }}.mcaddon .
+          git add ${{ env.PROJECT_NAME }}.mcaddon
+          git commit -m "Add Addon"
+
+      - name: Create and publish release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: v${{ github.event.inputs.version }}
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          artifacts: "${{ env.PROJECT_NAME }}.mcaddon"
+          body: ${{ steps.changelog_reader.outputs.changes }}
+          prerelease: ${{ steps.changelog_reader.outputs.status == 'prereleased' }}
+          draft: ${{ steps.changelog_reader.outputs.status == 'unreleased' }}

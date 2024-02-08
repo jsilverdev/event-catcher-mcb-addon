@@ -1,30 +1,17 @@
 {
    "compilerOptions": {
-      "target": "ES2020",
-      "moduleResolution": "node",
-      "module": "es2020",
-      "declaration": false,
-      "noLib": false,
-      "emitDecoratorMetadata": true,
-      "experimentalDecorators": true,
-      "sourceMap": true,
-      "pretty": true,
-      "forceConsistentCasingInFileNames": true,
-      "strict": true,
-      "allowUnreachableCode": true,
-      "allowUnusedLabels": true,
-      "noImplicitAny": true,
-      "noImplicitReturns": false,
-      "noImplicitUseStrict": false,
-      "outDir": "./scripts/",
-      "listFiles": false,
-      "noEmitHelpers": true
+      "module": "ES2020",
+      "target": "ES2021",
+      "moduleResolution": "Node",
+      "allowSyntheticDefaultImports": true,
+      "baseUrl": "./src",
+      "rootDir": "./src",
+      "outDir": "./scripts"
    },
-   "include": [
-      "src/**/*"
-   ],
    "exclude": [
       "node_modules"
    ],
-   "compileOnSave": false
+   "include": [
+      "src"
+   ]
 }
