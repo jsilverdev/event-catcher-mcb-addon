@@ -3,9 +3,9 @@
   "version": "1.1.2",
   "description": "Send chats to a specific endpoint",
   "dependencies": {
-    "@minecraft/server": "1.9.0-beta.1.20.60-preview.25",
-    "@minecraft/server-admin": "1.0.0-beta.1.20.60-stable",
-    "@minecraft/server-net": "1.0.0-beta.1.20.60-stable"
+    "@minecraft/server": "1.10.0-beta.1.20.70-stable",
+    "@minecraft/server-admin": "1.0.0-beta.1.20.70-stable",
+    "@minecraft/server-net": "1.0.0-beta.1.20.70-stable"
   },
   "devDependencies": {
     "typescript": "5.3.3"
