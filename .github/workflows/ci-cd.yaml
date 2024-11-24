@@ -5,7 +5,7 @@ on:
     inputs:
       version:
         type: number
-        default: 1.1.8
+        default: 1.1.9
         required: true
 
 env:
@@ -98,9 +98,10 @@ jobs:
           path: ./CHANGELOG.md
 
       - name: Setup Nodejs and npm
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: "18"
+          node-version: "lts/*"
+          check-latest: true
 
       - name: Install dependencies
         run: npm i
