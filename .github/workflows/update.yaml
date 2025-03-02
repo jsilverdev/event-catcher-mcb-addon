@@ -1,0 +1,28 @@
+name: Minor Update
+
+on:
+    schedule:
+        - cron: '0 20 * * *'
+
+jobs:
+    update:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Check-out code
+              uses: actions/checkout@v4
+
+            - name: Setup Nodejs and npm
+              uses: actions/setup-node@v4
+              with:
+                node-version: "lts/*"
+                check-latest: true
+
+            - name: 'Setup jq'
+              uses: dcarbone/install-jq-action@v2
+              with:
+                version: '1.7'
+                force: true
+
+            - name: Setup code
+              run: |
+                chmod +x .github/scripts/update.sh && .github/scripts/update.sh
