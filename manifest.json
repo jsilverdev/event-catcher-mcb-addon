@@ -4,8 +4,16 @@
     "description": "Addon for listen events and send to endpoint",
     "name": "Event Catcher",
     "uuid": "09eb48fe-19f9-4697-b7a8-4a3813bbc2fb",
-    "version": [1, 1, 11],
-    "min_engine_version": [1, 21, 50]
+    "version": [
+      1,
+      1,
+      11
+    ],
+    "min_engine_version": [
+      1,
+      21,
+      50
+    ]
   },
   "modules": [
     {
@@ -13,7 +21,11 @@
       "type": "script",
       "language": "javascript",
       "uuid": "2dca1ce2-c249-495b-a501-40c534a0c358",
-      "version": [1, 1, 11],
+      "version": [
+        1,
+        1,
+        11
+      ],
       "entry": "scripts/main.js"
     }
   ],
@@ -32,7 +44,9 @@
     }
   ],
   "metadata": {
-    "authors": ["JSilverDev"],
+    "authors": [
+      "JSilverDev"
+    ],
     "license": "MIT",
     "url": "https://github.com/jsilverdev/event-catcher-mcb-addon.git"
   }
