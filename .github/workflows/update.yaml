@@ -1,38 +1,43 @@
 name: Minor Update
 
 on:
-    schedule:
-        - cron: '0 5 * * *'
-    workflow_dispatch:
+  schedule:
+    - cron: "0 5 * * *"
+  workflow_dispatch:
 
 jobs:
-    update:
-        runs-on: ubuntu-latest
-        steps:
-            - name: Check-out code
-              uses: actions/checkout@v4
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check-out code
+        uses: actions/checkout@v4
 
-            - name: Setup Nodejs and npm
-              uses: actions/setup-node@v4
-              with:
-                node-version: "lts/*"
-                check-latest: true
+      - name: Setup Nodejs and npm
+        uses: actions/setup-node@v4
+        with:
+          node-version: "lts/*"
+          check-latest: true
 
-            - name: 'Setup jq'
-              uses: dcarbone/install-jq-action@v2
-              with:
-                version: '1.7'
-                force: true
+      - name: "Setup jq"
+        uses: dcarbone/install-jq-action@v2
+        with:
+          version: "1.7"
+          force: true
 
-            - name: Update deps
-              run: |
-                chmod +x .github/scripts/update.sh && .github/scripts/update.sh
+      - name: Update deps
+        run: |
+          chmod +x .github/scripts/update.sh && .github/scripts/update.sh
 
-            - name: Git update
-              run: |
-                version=$(jq -r '.version' package.json)
-                git config user.name "github-actions[bot]"
-                git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-                git add .
-                git commit -m "Update to $version"
-                git push
+      - name: Git update
+        run: |
+          version=$(jq -r '.version' package.json)
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "Update to $version"
+          git push
+          echo "addon_version=$version" >> $GITHUB_OUTPUT
+  create-release:
+    uses: ./.github/workflows/ci-cd.yaml
+    with:
+      version: ${{ needs.update.outputs.addon_version }}

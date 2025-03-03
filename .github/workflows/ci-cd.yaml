@@ -5,7 +5,13 @@ on:
     inputs:
       version:
         type: number
-        default: 1.1.11
+        default: 1.1.12
+        required: true
+  workflow_call:
+    inputs:
+      version:
+        type: number
+        default: 1.1.12
         required: true
 
 env:
