@@ -1,5 +1,16 @@
 #!/usr/bin/env bash
 
+function check_package () {
+    if ! hash "$1" 2> /dev/null; then
+        echo "$1 is not installed"
+        exit 1
+    fi
+}
+
+check_package jq
+check_package npm
+check_package curl
+
 DOWNLOAD_URL=$(curl -H "Accept-Encoding: identity" -H "Accept-Language: en" -s -L -A "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; BEDROCK-UPDATER)" https://minecraft.net/en-us/download/server/bedrock/ | grep -o 'https://[^"]*/bin-linux/[^"]*.zip')
 
 if [ -z "$DOWNLOAD_URL" ]; then
@@ -16,31 +27,52 @@ if [ -z "$MCB_VERSION_ARRAY" ]; then
     exit 1
 fi
 
+MCB_VERSION_MINOR=$(( (MCB_VERSION_ARRAY[2] / 10) * 10 ))
+MCB_VERSION_ARRAY=(${MCB_VERSION_ARRAY[0]} ${MCB_VERSION_ARRAY[1]} ${MCB_VERSION_MINOR})
+MCB_VERSION="${MCB_VERSION_ARRAY[0]}.${MCB_VERSION_ARRAY[1]}.${MCB_VERSION_ARRAY[2]}"
+echo -e "MCB Version: ${MCB_VERSION}\n"
+
 # Move to root path
 cd "$(dirname "$0")/../.."
 
 ADDON_VERSION_ARRAY=($(jq '.header.version[]' manifest.json))
-echo "Actual Addon Version: ${ADDON_VERSION_ARRAY[0]}.${ADDON_VERSION_ARRAY[1]}.${ADDON_VERSION_ARRAY[2]}"
+ADDON_PREVIOUS_VERSION="${ADDON_VERSION_ARRAY[0]}.${ADDON_VERSION_ARRAY[1]}.${ADDON_VERSION_ARRAY[2]}"
+echo "Actual Addon Version: $ADDON_PREVIOUS_VERSION"
 NEW_MINOR=$((${ADDON_VERSION_ARRAY[2]}+1))
 ADDON_VERSION_ARRAY=(${ADDON_VERSION_ARRAY[0]} ${ADDON_VERSION_ARRAY[1]} ${NEW_MINOR})
-echo "New Addon Version: ${ADDON_VERSION_ARRAY[0]}.${ADDON_VERSION_ARRAY[1]}.${ADDON_VERSION_ARRAY[2]}"
+ADDON_VERSION="${ADDON_VERSION_ARRAY[0]}.${ADDON_VERSION_ARRAY[1]}.${ADDON_VERSION_ARRAY[2]}"
+echo -e "New Addon Version: ${ADDON_VERSION}\n"
 
 jq -r '.dependencies[] | "\(.module_name) \(.version)"' manifest.json | \
     while read -r module_name version; do
 
-        npm_version=$(npm view "${module_name}@*" versions | \
+        npm_version=$(
+            npm view "${module_name}@*" versions | \
             grep "beta.${MCB_VERSION_ARRAY[0]}.${MCB_VERSION_ARRAY[1]}.${MCB_VERSION_ARRAY[2]}" | \
-            tail -n 1 | xargs | sed 's/,$//')
+            tail -n 1 | xargs | sed 's/,$//'
+        )
 
-        echo "$module_name last npm version: $npm_version"
+        if [ -z "$npm_version" ]; then
+            echo "Failed to get npm version for: $module_name"
+            exit 1
+        fi
+
+        module_version=$(
+            echo "$npm_version" | grep -o '^[0-9.]\+-beta'
+        )
+
+        echo "$module_name - LAST NPM VERSION: $npm_version - LAST MODULE VERSION: $module_version"
 
         jq --arg dep "${module_name}" --arg ver "${npm_version}" '.dependencies[$dep] = $ver' package.json > package.temp.json && \
             mv package.temp.json package.json
 
-        jq --arg module "${module_name}" --arg version "${npm_version}" '.dependencies[] | (select(.module_name == $module)).version = $version' manifest.json > manifest.temp && \
+        jq --arg module "${module_name}" --arg version "${module_version}" '(.dependencies[] | select(.module_name == $module) .version) = $version' manifest.json > manifest.temp && \
             mv manifest.temp manifest.json
 
     done
+
+jq --arg version "$ADDON_VERSION" '.version = $version' package.json > package.temp.json && \
+    mv package.temp.json package.json
 
 jq ".header.version = [${ADDON_VERSION_ARRAY[0]}, ${ADDON_VERSION_ARRAY[1]}, ${ADDON_VERSION_ARRAY[2]}] |
     .modules[0].version = [${ADDON_VERSION_ARRAY[0]}, ${ADDON_VERSION_ARRAY[1]}, ${ADDON_VERSION_ARRAY[2]}] |

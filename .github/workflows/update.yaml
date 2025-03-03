@@ -23,6 +23,6 @@ jobs:
                 version: '1.7'
                 force: true
 
-            - name: Setup code
+            - name: Update deps
               run: |
                 chmod +x .github/scripts/update.sh && .github/scripts/update.sh
