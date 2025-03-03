@@ -8,6 +8,8 @@ on:
 jobs:
   update:
     runs-on: ubuntu-latest
+    outputs:
+      addon_version: ${{ steps.git_update.outputs.addon_version }}
     steps:
       - name: Check-out code
         uses: actions/checkout@v4
@@ -29,6 +31,7 @@ jobs:
           chmod +x .github/scripts/update.sh && .github/scripts/update.sh
 
       - name: Git update
+        id: git_update
         run: |
           version=$(jq -r '.version' package.json)
           git config user.name "github-actions[bot]"
