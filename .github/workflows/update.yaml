@@ -38,6 +38,8 @@ jobs:
           git push
           echo "addon_version=$version" >> $GITHUB_OUTPUT
   create-release:
+    if: ${{ needs.ci.result == 'success' }}
+    needs: [ update ]
     uses: ./.github/workflows/ci-cd.yaml
     with:
       version: ${{ needs.update.outputs.addon_version }}
