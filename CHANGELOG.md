@@ -7,8 +7,6 @@ and this project adheres to [Semantic Versioning].
 
 ## [Unreleased]
 
-- /
-
 ## [1.1.11] - 2024-12-14
 
 ### Changed
