@@ -139,7 +139,6 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           tag: v${{ inputs.version }}
-          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
           artifacts: "${{ env.PROJECT_NAME }}.mcaddon"
           body: ${{ steps.changelog_reader.outputs.changes }}
           prerelease: ${{ steps.changelog_reader.outputs.status == 'prereleased' }}
