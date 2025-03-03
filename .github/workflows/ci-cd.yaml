@@ -23,7 +23,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.head_ref }}
           fetch-depth: 0
           sparse-checkout: |
             CHANGELOG.md
@@ -44,7 +43,7 @@ jobs:
 
       - name: Check if tag exists
         run: |
-          if git rev-parse -q --verify "refs/tags/v${{ github.event.inputs.version }}" >/dev/null; then
+          if git rev-parse -q --verify "refs/tags/v${{ inputs.version }}" >/dev/null; then
             echo "The tag $tag_name already exists in the repository."
             exit 1
           fi
@@ -55,19 +54,19 @@ jobs:
         with:
           validation_level: error
           validation_depth: 1
-          version: ${{ github.event.inputs.version }}
+          version: ${{ inputs.version }}
           path: ./CHANGELOG.md
 
       - name: Check manifest.json version
         run: |
           header_version=$(jq -r '.header.version | map(tostring) | join(".")' manifest.json)
           modules_version=$(jq -r '.modules[0].version | map(tostring) | join(".")' manifest.json)
-          if [[ "$header_version" != "${{ github.event.inputs.version }}" ]]; then
-                  echo "Error: header version ($header_version) in not the same as ${{ github.event.inputs.version }}"
+          if [[ "$header_version" != "${{ inputs.version }}" ]]; then
+                  echo "Error: header version ($header_version) in not the same as ${{ inputs.version }}"
                   exit 1
           fi
-          if [[ "$modules_version" != "${{ github.event.inputs.version }}" ]]; then
-                  echo "Error: modules version ($modules_version) in not the same as ${{ github.event.inputs.version }}"
+          if [[ "$modules_version" != "${{ inputs.version }}" ]]; then
+                  echo "Error: modules version ($modules_version) in not the same as ${{ inputs.version }}"
                   exit 1
           fi
 
@@ -90,8 +89,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.head_ref }}
 
       - name: Get Changelog Entry
         id: changelog_reader
@@ -99,7 +96,7 @@ jobs:
         with:
           validation_level: error
           validation_depth: 1
-          version: ${{ github.event.inputs.version }}
+          version: ${{ inputs.version }}
           path: ./CHANGELOG.md
 
       - name: Setup Nodejs and npm
@@ -126,8 +123,8 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git tag v${{ github.event.inputs.version }}
-          git push origin v${{ github.event.inputs.version }}
+          git tag v${{ inputs.version }}
+          git push origin v${{ inputs.version }}
 
       - name: Prepare to release in artifact
         run: |
@@ -138,7 +135,7 @@ jobs:
       - name: Create and publish release
         uses: ncipollo/release-action@v1
         with:
-          tag: v${{ github.event.inputs.version }}
+          tag: v${{ inputs.version }}
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
           artifacts: "${{ env.PROJECT_NAME }}.mcaddon"
           body: ${{ steps.changelog_reader.outputs.changes }}
