@@ -2,7 +2,8 @@ name: Minor Update
 
 on:
     schedule:
-        - cron: '0 20 * * *'
+        - cron: '0 5 * * *'
+    workflow_dispatch:
 
 jobs:
     update:
@@ -26,3 +27,9 @@ jobs:
             - name: Update deps
               run: |
                 chmod +x .github/scripts/update.sh && .github/scripts/update.sh
+
+            - name: Git update
+              run: |
+                version=$(jq -r '.version' package.json)
+                git add . && git commit -m "Update to $version"
+                git push origin main

@@ -30,7 +30,13 @@ fi
 MCB_VERSION_MINOR=$(( (MCB_VERSION_ARRAY[2] / 10) * 10 ))
 MCB_VERSION_ARRAY=(${MCB_VERSION_ARRAY[0]} ${MCB_VERSION_ARRAY[1]} ${MCB_VERSION_MINOR})
 MCB_VERSION="${MCB_VERSION_ARRAY[0]}.${MCB_VERSION_ARRAY[1]}.${MCB_VERSION_ARRAY[2]}"
-echo -e "MCB Version: ${MCB_VERSION}\n"
+
+OLD_MCB_VERSION=$(jq -r '.header.min_engine_version | map(tostring) | join(".")' manifest.json)
+if [ "$OLD_MCB_VERSION" == "$MCB_VERSION" ]; then
+    echo "The new MCB Version and the actual are the same ($MCB_VERSION). Exiting..."
+    exit 1
+fi
+echo -e "New MCB Version: ${MCB_VERSION}\n"
 
 # Move to root path
 cd "$(dirname "$0")/../.."
@@ -78,3 +84,17 @@ jq ".header.version = [${ADDON_VERSION_ARRAY[0]}, ${ADDON_VERSION_ARRAY[1]}, ${A
     .modules[0].version = [${ADDON_VERSION_ARRAY[0]}, ${ADDON_VERSION_ARRAY[1]}, ${ADDON_VERSION_ARRAY[2]}] |
     .header.min_engine_version = [${MCB_VERSION_ARRAY[0]}, ${MCB_VERSION_ARRAY[1]}, ${MCB_VERSION_ARRAY[2]}]" manifest.json > manifest.temp.json && \
     mv manifest.temp.json manifest.json
+
+GIT_URL="https://github.com/jsilverdev/event-catcher-mcb-addon/compare/"
+CHANGELOG_FILE="CHANGELOG.md"
+DATE=$(date +"%Y-%m-%d")
+
+sed -i "/## \[Unreleased\]/a \\
+\\n## [$ADDON_VERSION] - $DATE\\n\\n### Changed\\n\\n- Upgrade dependencies (Compatible with $MCB_VERSION)\\n" "$CHANGELOG_FILE"
+
+UNRELEASED_LINK_PATTERN="^\[unreleased\]: .*"
+NEW_UNRELEASED_LINK="[unreleased]: ${GIT_URL}v${ADDON_VERSION}...HEAD\\n[${ADDON_VERSION}]: ${GIT_URL}v${ADDON_PREVIOUS_VERSION}...v${ADDON_VERSION}"
+
+sed -i "s|$UNRELEASED_LINK_PATTERN|$NEW_UNRELEASED_LINK|" "$CHANGELOG_FILE"
+
+echo "Updated Changelog to $ADDON_VERSION"
