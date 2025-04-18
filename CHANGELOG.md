@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning].
 
 ## [Unreleased]
 
+## [1.1.14] - 2025-04-18
+
+### Fixed
+
+- Fix the error: "ReferenceError: Native constructor for [HttpHeader] does not have required privileges..."
+
 ## [1.1.13] - 2025-03-26
 
 ### Changed
@@ -106,7 +112,8 @@ and this project adheres to [Semantic Versioning].
 [semantic versioning]: https://semver.org/spec/v2.0.0.html
 
 <!-- Versions -->
-[unreleased]: https://github.com/jsilverdev/event-catcher-mcb-addon/compare/v1.1.13...HEAD
+[unreleased]: https://github.com/jsilverdev/event-catcher-mcb-addon/compare/v1.1.14...HEAD
+[1.1.14]: https://github.com/jsilverdev/event-catcher-mcb-addon/compare/v1.1.13...v1.1.14
 [1.1.13]: https://github.com/jsilverdev/event-catcher-mcb-addon/compare/v1.1.12...v1.1.13
 [1.1.12]: https://github.com/jsilverdev/event-catcher-mcb-addon/compare/v1.1.11...v1.1.12
 [1.1.11]: https://github.com/jsilverdev/event-catcher-mcb-addon/compare/v1.1.10...v1.1.11

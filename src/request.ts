@@ -4,13 +4,11 @@ import { HttpHeader, HttpRequest, HttpRequestMethod, http } from "@minecraft/ser
 
 export const url: String = (variables.get("chat_interact_url") as String | null) ?? "";
 
-const headers = [
-    new HttpHeader("Content-Type", "application/json")
-];
-
 export const sendPostRequest = (uri: string, body: string) => {
     const httpRequest = new HttpRequest(`${url}/${uri}/`);
-    httpRequest.headers = headers;
+    httpRequest.headers = [
+        new HttpHeader("Content-Type", "application/json")
+    ];
     httpRequest.method = HttpRequestMethod.Post;
     httpRequest.body = body;
     http.request(httpRequest).then(
