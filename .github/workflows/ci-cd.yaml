@@ -119,6 +119,7 @@ jobs:
           mkdir -p ./addon/${{ env.PROJECT_NAME}}
           cp -r scripts ./addon/${{ env.PROJECT_NAME}}
           cp -r manifest.json ./addon/${{ env.PROJECT_NAME}}
+          cp -r pack_icon.png ./addon/${{ env.PROJECT_NAME}}
           cd ./addon/ && zip -qq -r ${{ env.PROJECT_NAME }}.mcaddon ${{ env.PROJECT_NAME }}
           cd ..
 

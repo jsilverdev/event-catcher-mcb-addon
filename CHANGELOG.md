@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning].
 
 ## [Unreleased]
 
+### Added
+
+- Logo image
+
 ## [1.1.14] - 2025-04-18
 
 ### Fixed
