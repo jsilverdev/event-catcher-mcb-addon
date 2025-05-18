@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning].
 
 ## [Unreleased]
 
+### Fixed
+
+- Fix auto-update
+
 ## [1.1.15] - 2025-05-07
 
 ### Changed

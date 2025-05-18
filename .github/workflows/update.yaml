@@ -4,6 +4,16 @@ on:
   schedule:
     - cron: "0 5 * * *"
   workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to update"
+        type: number
+        required: false
+      force:
+        description: "Force update"
+        type: boolean
+        default: false
+        required: false
 
 jobs:
   update:
@@ -28,7 +38,7 @@ jobs:
 
       - name: Update deps
         run: |
-          chmod +x .github/scripts/update.sh && .github/scripts/update.sh
+          chmod +x .github/scripts/update.sh && .github/scripts/update.sh ${{ inputs.force && '--force' || '' }} ${{ inputs.version && format('--version={0}', inputs.version) || '' }}
 
       - name: Git update
         id: git_update

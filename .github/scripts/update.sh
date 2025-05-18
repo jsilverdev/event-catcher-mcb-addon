@@ -1,5 +1,26 @@
 #!/usr/bin/env bash
 
+## START flags
+force=false
+version=""
+
+# Parse arguments
+for arg in "$@"; do
+  case "$arg" in
+    --force)
+      force=true
+      ;;
+    --version=*)
+      version="${arg#*=}"
+      ;;
+    *)
+      echo "Unknown option: $arg"
+      exit 1
+      ;;
+  esac
+done
+## END flags
+
 function check_package () {
     if ! hash "$1" 2> /dev/null; then
         echo "$1 is not installed"
@@ -32,21 +53,41 @@ MCB_VERSION_ARRAY=(${MCB_VERSION_ARRAY[0]} ${MCB_VERSION_ARRAY[1]} ${MCB_VERSION
 MCB_VERSION="${MCB_VERSION_ARRAY[0]}.${MCB_VERSION_ARRAY[1]}.${MCB_VERSION_ARRAY[2]}"
 
 OLD_MCB_VERSION=$(jq -r '.header.min_engine_version | map(tostring) | join(".")' manifest.json)
-if [ "$OLD_MCB_VERSION" == "$MCB_VERSION" ]; then
-    echo "The new MCB Version and the actual are the same ($MCB_VERSION). Exiting..."
-    exit 1
+if $force; then
+  echo "Skipping comparison of MCB versions due to --force flag."
+else
+    if [ "$OLD_MCB_VERSION" == "$MCB_VERSION" ]; then
+        echo "The new MCB Version and the actual are the same ($MCB_VERSION). Exiting..."
+        exit 1
+    fi
 fi
-echo -e "New MCB Version: ${MCB_VERSION}\n"
 
-# Move to root path
-cd "$(dirname "$0")/../.."
+echo -e "MCB Version: ${MCB_VERSION}\n"
 
 ADDON_VERSION_ARRAY=($(jq '.header.version[]' manifest.json))
 ADDON_PREVIOUS_VERSION="${ADDON_VERSION_ARRAY[0]}.${ADDON_VERSION_ARRAY[1]}.${ADDON_VERSION_ARRAY[2]}"
 echo "Actual Addon Version: $ADDON_PREVIOUS_VERSION"
-NEW_MINOR=$((${ADDON_VERSION_ARRAY[2]}+1))
-ADDON_VERSION_ARRAY=(${ADDON_VERSION_ARRAY[0]} ${ADDON_VERSION_ARRAY[1]} ${NEW_MINOR})
-ADDON_VERSION="${ADDON_VERSION_ARRAY[0]}.${ADDON_VERSION_ARRAY[1]}.${ADDON_VERSION_ARRAY[2]}"
+
+if [[ -z "$version" ]]; then
+    NEW_MINOR=$((${ADDON_VERSION_ARRAY[2]}+1))
+    ADDON_VERSION_ARRAY=(${ADDON_VERSION_ARRAY[0]} ${ADDON_VERSION_ARRAY[1]} ${NEW_MINOR})
+    ADDON_VERSION="${ADDON_VERSION_ARRAY[0]}.${ADDON_VERSION_ARRAY[1]}.${ADDON_VERSION_ARRAY[2]}"
+else
+    echo "Version to update: $version"
+    if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        echo "Invalid version format. Use x.x.x"
+        exit 1
+    fi
+
+    if [[ "$(printf '%s\n' "$ADDON_PREVIOUS_VERSION" "$version" | sort -V | head -n1)" != "$ADDON_PREVIOUS_VERSION" ]]; then
+        echo "Version $version is lower than the current version $ADDON_PREVIOUS_VERSION. Exiting..."
+        exit 1
+    fi
+
+    IFS='.' read -r -a ADDON_VERSION_ARRAY <<< "$version"
+    ADDON_VERSION="${ADDON_VERSION_ARRAY[0]}.${ADDON_VERSION_ARRAY[1]}.${ADDON_VERSION_ARRAY[2]}"
+fi
+
 echo -e "New Addon Version: ${ADDON_VERSION}\n"
 
 jq -r '.dependencies[] | "\(.module_name) \(.version)"' manifest.json | \
@@ -54,7 +95,7 @@ jq -r '.dependencies[] | "\(.module_name) \(.version)"' manifest.json | \
 
         npm_version=$(
             npm view "${module_name}@*" versions | \
-            grep "beta.${MCB_VERSION_ARRAY[0]}.${MCB_VERSION_ARRAY[1]}.${MCB_VERSION_ARRAY[2]}" | \
+            grep "beta.${MCB_VERSION_ARRAY[0]}.${MCB_VERSION_ARRAY[1]}.${MCB_VERSION_ARRAY[2]}-stable" | \
             tail -n 1 | xargs | sed 's/,$//'
         )
 
@@ -89,8 +130,45 @@ GIT_URL="https://github.com/jsilverdev/event-catcher-mcb-addon/compare/"
 CHANGELOG_FILE="CHANGELOG.md"
 DATE=$(date +"%Y-%m-%d")
 
-sed -i "/## \[Unreleased\]/a \\
-\\n## [$ADDON_VERSION] - $DATE\\n\\n### Changed\\n\\n- Upgrade dependencies (Compatible with $MCB_VERSION)\\n" "$CHANGELOG_FILE"
+temp_file="$(mktemp)"
+comment="- Upgrade dependencies (Compatible with $MCB_VERSION)"
+
+awk -v text="$comment" -v found_var="__CHANGED_FOUND__" '
+  BEGIN { in_unreleased=0; changed_inserted=0 }
+  /^## \[Unreleased\]/ {
+    in_unreleased=1
+    print
+    next
+  }
+  in_unreleased && /^## \[/ {
+    in_unreleased=0
+  }
+  in_unreleased && /^### Changed/ && !changed_inserted {
+    print
+    print ""
+    print text
+    changed_inserted=1
+    next
+  }
+  { print }
+  END {
+    if (!changed_inserted) {
+      print found_var
+    }
+  }
+' "$CHANGELOG_FILE" > "$temp_file"
+
+if grep -q "__CHANGED_FOUND__" "$temp_file"; then
+    sed -i "/## \[Unreleased\]/a \\
+\\n## [$ADDON_VERSION] - $DATE\\n\\n### Changed\\n\\n$comment\\n" "$temp_file"
+else
+    sed -i "/## \[Unreleased\]/a \\
+\\n## [$ADDON_VERSION] - $DATE\\n" "$temp_file"
+fi
+
+sed -i '/__CHANGED_FOUND__/d' "$temp_file"
+
+mv "$temp_file" "$CHANGELOG_FILE"
 
 UNRELEASED_LINK_PATTERN="^\[unreleased\]: .*"
 NEW_UNRELEASED_LINK="[unreleased]: ${GIT_URL}v${ADDON_VERSION}...HEAD\\n[${ADDON_VERSION}]: ${GIT_URL}v${ADDON_PREVIOUS_VERSION}...v${ADDON_VERSION}"
