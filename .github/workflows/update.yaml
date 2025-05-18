@@ -1,4 +1,4 @@
-name: Minor Update
+name: Update Version
 
 on:
   schedule:
