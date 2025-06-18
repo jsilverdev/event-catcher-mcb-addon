@@ -32,7 +32,7 @@ check_package jq
 check_package npm
 check_package curl
 
-DOWNLOAD_URL=$(curl -H "Accept-Encoding: identity" -H "Accept-Language: en" -s -L -A "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; BEDROCK-UPDATER)" https://minecraft.net/en-us/download/server/bedrock/ | grep -o 'https://[^"]*/bin-linux/[^"]*.zip')
+DOWNLOAD_URL=$(curl -H "Accept-Encoding: identity" -H "Accept-Language: en" -s -L -A "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; BEDROCK-UPDATER)" https://net-secondary.web.minecraft-services.net/api/v1.0/download/links | grep -o 'https://[^"]*/bin-linux/[^"]*.zip')
 
 if [ -z "$DOWNLOAD_URL" ]; then
     echo "Could not find the download URL."
