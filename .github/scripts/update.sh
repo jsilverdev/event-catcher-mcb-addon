@@ -68,7 +68,7 @@ MCB_VERSION="${MCB_VERSION_ARRAY[0]}.${MCB_VERSION_ARRAY[1]}.${MCB_VERSION_ARRAY
 
 OLD_MCB_VERSION=$(jq -r '.header.min_engine_version | map(tostring) | join(".")' manifest.json)
 if $force; then
-  echo "Skipping comparison of MCB versions due to --force flag."
+  echo "::warning ::Skipping comparison of MCB versions due to --force flag."
 else
     if [ "$OLD_MCB_VERSION" == "$MCB_VERSION" ]; then
         echo "::warning ::The new MCB Version and the actual are the same ($MCB_VERSION). Nothing to do."

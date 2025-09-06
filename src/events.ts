@@ -2,7 +2,6 @@ import { Player, world } from "@minecraft/server";
 import { sendPostRequest, url } from "./request";
 
 export const chatSubscribe = () => {
-    if (url == "") return;
     world.afterEvents.chatSend.subscribe((e) => {
         const player = e.sender;
         const message = e.message;
@@ -11,6 +10,8 @@ export const chatSubscribe = () => {
             handleCommands(player, message);
             return;
         }
+
+        if (url == "") return;
 
         const body = {
             player: player.nameTag,
@@ -29,20 +30,30 @@ const handleCommands = (player: Player, command: string) => {
 }
 
 const goHomeCommand = (player: Player) => {
-    try {
-        const isTeleported = player.tryTeleport(
-            world.getDefaultSpawnLocation(),
-            {
-                dimension: world.getDimension("overworld"),
-                keepVelocity: false
-            }
-        );
-        if (!isTeleported) {
-            player.sendMessage(`Cant go home try again`);
-        }
-    } catch (error) {
-        player.sendMessage(`Cant go home because: ${error}`);
+
+    const spawn = player.getSpawnPoint();
+    if (spawn) {
+        const { dimension, ...user_location } = spawn;
+        player.teleport(user_location, { "dimension": dimension });
+        player.sendMessage(`§eYou have been teleported to your spawn point.`);
+        return
     }
+
+    const overworld = world.getDimension("overworld")
+    const { x, z } = world.getDefaultSpawnLocation()
+    const location = overworld.getBlockFromRay(
+        { x, y: 400, z },
+        { x: 0, y: -1, z: 0 },
+        { maxDistance: 500 }
+    )?.block.location
+
+    if (location) {
+        player.teleport(location, { "dimension": overworld });
+        player.sendMessage("§eYou have been teleported to your spawn point.");
+        return;
+    }
+    
+    player.sendMessage("§cTeleport to spawnpoint wasn't possible. Try again later.");
 }
 
 export const playerEnterToWorldSubscribe = () => {

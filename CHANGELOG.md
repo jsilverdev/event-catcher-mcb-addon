@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning].
 
 ## [Unreleased]
 
+### Changed
+
+- Improves for !home command
+
 ## [1.1.18] - 2025-08-24
 
 ### Changed
