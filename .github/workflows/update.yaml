@@ -20,6 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       addon_version: ${{ steps.git_update.outputs.addon_version }}
+      skipped: ${{ steps.update_script.outputs.skipped }}
     steps:
       - name: Check-out code
         uses: actions/checkout@v4
@@ -37,21 +38,28 @@ jobs:
           force: true
 
       - name: Update deps
+        id: update_script
         run: |
-          chmod +x .github/scripts/update.sh && .github/scripts/update.sh ${{ inputs.force && '--force' || '' }} ${{ inputs.version && format('--version={0}', inputs.version) || '' }}
+          chmod +x .github/scripts/update.sh
+          .github/scripts/update.sh \
+            ${{ inputs.force && '--force' || '' }} \
+            ${{ inputs.version && format('--version={0}', inputs.version) || '' }}
 
       - name: Git update
         id: git_update
+        if: steps.update_script.outputs.skipped != 'true'
         run: |
           version=$(jq -r '.version' package.json)
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add .
-          git commit -m "Update to $version"
-          git push
+          git commit -m "Update to $version" || echo "No changes to commit"
+          git push || echo "Nothing to push"
           echo "addon_version=$version" >> $GITHUB_OUTPUT
+
   create-release:
     needs: [ update ]
+    if: ${{ needs.update.result == 'success' && needs.update.outputs.skipped != 'true' }}
     uses: ./.github/workflows/ci-cd.yaml
     with:
       version: ${{ needs.update.outputs.addon_version }}

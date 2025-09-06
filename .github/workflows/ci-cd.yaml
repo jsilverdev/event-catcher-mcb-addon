@@ -63,11 +63,11 @@ jobs:
           header_version=$(jq -r '.header.version | map(tostring) | join(".")' manifest.json)
           modules_version=$(jq -r '.modules[0].version | map(tostring) | join(".")' manifest.json)
           if [[ "$header_version" != "${{ inputs.version }}" ]]; then
-                  echo "Error: header version ($header_version) in not the same as ${{ inputs.version }}"
+                  echo "::error ::header version ($header_version) in not the same as ${{ inputs.version }}"
                   exit 1
           fi
           if [[ "$modules_version" != "${{ inputs.version }}" ]]; then
-                  echo "Error: modules version ($modules_version) in not the same as ${{ inputs.version }}"
+                  echo "::error ::modules version ($modules_version) in not the same as ${{ inputs.version }}"
                   exit 1
           fi
 
@@ -78,7 +78,7 @@ jobs:
               manifest_version="$version.$min_version"
               package_version=$(jq -r --arg module "$module_name" '.dependencies[$module]' package.json)
               if [[ "$package_version" != "$manifest_version"* ]]; then
-                  echo "Error: The version of $module_name in package.json ($package_version) does not match the expected version ($manifest_version)"
+                  echo "::error ::The version of $module_name in package.json ($package_version) does not match the expected version ($manifest_version)"
                   exit 1
               fi
               echo "The version of $module_name in package.json ($package_version) match with the expected version ($manifest_version)"

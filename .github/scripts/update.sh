@@ -15,7 +15,7 @@ for arg in "$@"; do
       version="${arg#*=}"
       ;;
     *)
-      echo "Unknown option: $arg"
+      echo "::error ::Unknown option: $arg"
       exit 1
       ;;
   esac
@@ -24,7 +24,7 @@ done
 
 function check_package () {
     if ! hash "$1" 2> /dev/null; then
-        echo "$1 is not installed"
+        echo "::error ::$1 is not installed"
         exit 1
     fi
 }
@@ -36,16 +36,29 @@ check_package curl
 DOWNLOAD_URL=$(curl -H "Accept-Encoding: identity" -H "Accept-Language: en" -s -L -A "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; BEDROCK-UPDATER)" https://net-secondary.web.minecraft-services.net/api/v1.0/download/links | grep -o 'https://[^"]*/bin-linux/[^"]*.zip')
 
 if [ -z "$DOWNLOAD_URL" ]; then
-    echo "Could not find the download URL."
+    echo "::error ::Could not find the download URL."
+    {
+      echo "## ❌ Download Failed"
+      echo ""
+      echo "Reason: Could not find a valid Bedrock server download URL."
+      echo ""
+      echo "Endpoint checked: https://net-secondary.web.minecraft-services.net/api/v1.0/download/links"
+    } >> "$GITHUB_STEP_SUMMARY"
     exit 1
 fi
 
 MCB_VERSION=$(echo "$DOWNLOAD_URL" | grep -oP 'bedrock-server-\K[0-9.]+(?=\.zip)')
-# MCB_VERSION='1.21.62.01'
 IFS='.' read -r -a MCB_VERSION_ARRAY <<< "$MCB_VERSION"
 
 if [ -z "$MCB_VERSION_ARRAY" ]; then
-    echo "Failed to extract version array from the download URL: $DOWNLOAD_URL"
+    echo "::error ::Failed to extract version array from the download URL: $DOWNLOAD_URL"
+    {
+      echo "## ❌ Version Parsing Failed"
+      echo ""
+      echo "Reason: Could not extract version array from the download URL."
+      echo ""
+      echo "URL: \`$DOWNLOAD_URL\`"
+    } >> "$GITHUB_STEP_SUMMARY"
     exit 1
 fi
 
@@ -58,8 +71,18 @@ if $force; then
   echo "Skipping comparison of MCB versions due to --force flag."
 else
     if [ "$OLD_MCB_VERSION" == "$MCB_VERSION" ]; then
-        echo "The new MCB Version and the actual are the same ($MCB_VERSION). Exiting..."
-        exit 1
+        echo "::warning ::The new MCB Version and the actual are the same ($MCB_VERSION). Nothing to do."
+        echo "skipped=true" >> "$GITHUB_OUTPUT"
+
+        {
+          echo "## 🚫 Skipped Release"
+          echo ""
+          echo "**Reason:** The new MCB Version \`$MCB_VERSION\` is the same as the current version."
+          echo ""
+          echo "No changes were made and no release will be created."
+        } >> "$GITHUB_STEP_SUMMARY"
+
+        exit 0
     fi
 fi
 
@@ -76,12 +99,12 @@ if [[ -z "$version" ]]; then
 else
     echo "Version to update: $version"
     if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-        echo "Invalid version format. Use x.x.x"
+        echo "::error ::Invalid version format. Use x.x.x"
         exit 1
     fi
 
     if [[ "$(printf '%s\n' "$ADDON_PREVIOUS_VERSION" "$version" | sort -V | head -n1)" != "$ADDON_PREVIOUS_VERSION" ]]; then
-        echo "Version $version is lower than the current version $ADDON_PREVIOUS_VERSION. Exiting..."
+        echo "::error ::Version $version is lower than the current version $ADDON_PREVIOUS_VERSION."
         exit 1
     fi
 
@@ -101,7 +124,14 @@ jq -r '.dependencies[] | "\(.module_name) \(.version)"' manifest.json | \
         )
 
         if [ -z "$npm_version" ]; then
-            echo "Failed to get npm version for: $module_name"
+            echo "::error ::Failed to get npm version for: $module_name"
+            {
+              echo "## ❌ Dependency Update Failed"
+              echo ""
+              echo "**Module:** \`$module_name\`"
+              echo ""
+              echo "Reason: Could not find a matching npm version for **MCB $MCB_VERSION**."
+            } >> "$GITHUB_STEP_SUMMARY"
             exit 1
         fi
 
@@ -176,4 +206,4 @@ NEW_UNRELEASED_LINK="[unreleased]: ${GIT_URL}v${ADDON_VERSION}...HEAD\\n[${ADDON
 
 sed -i "s|$UNRELEASED_LINK_PATTERN|$NEW_UNRELEASED_LINK|" "$CHANGELOG_FILE"
 
-echo "Updated Changelog to $ADDON_VERSION"
+echo "::notice ::Updated Changelog to $ADDON_VERSION"
