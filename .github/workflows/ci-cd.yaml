@@ -109,7 +109,7 @@ jobs:
           check-latest: true
 
       - name: Install dependencies
-        run: npm i
+        run: npm i --force
 
       - name: Build
         run: npm run build

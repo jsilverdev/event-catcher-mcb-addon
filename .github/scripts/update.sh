@@ -62,8 +62,8 @@ if [ -z "$MCB_VERSION_ARRAY" ]; then
     exit 1
 fi
 
-MCB_VERSION_MINOR=$(( (MCB_VERSION_ARRAY[2] / 10) * 10 ))
-MCB_VERSION_ARRAY=(${MCB_VERSION_ARRAY[0]} ${MCB_VERSION_ARRAY[1]} ${MCB_VERSION_MINOR})
+# MCB_VERSION_MINOR=$(( (MCB_VERSION_ARRAY[2] / 10) * 10  ))
+# MCB_VERSION_ARRAY=(${MCB_VERSION_ARRAY[0]} ${MCB_VERSION_ARRAY[1]} ${MCB_VERSION_MINOR})
 MCB_VERSION="${MCB_VERSION_ARRAY[0]}.${MCB_VERSION_ARRAY[1]}.${MCB_VERSION_ARRAY[2]}"
 
 OLD_MCB_VERSION=$(jq -r '.header.min_engine_version | map(tostring) | join(".")' manifest.json)
@@ -117,11 +117,22 @@ echo -e "New Addon Version: ${ADDON_VERSION}\n"
 jq -r '.dependencies[] | "\(.module_name) \(.version)"' manifest.json | \
     while read -r module_name version; do
 
+        echo "Processing module: $module_name with current version: $version"
         npm_version=$(
             npm view "${module_name}@*" versions | \
             grep "beta.${MCB_VERSION_ARRAY[0]}.${MCB_VERSION_ARRAY[1]}.${MCB_VERSION_ARRAY[2]}-stable" | \
             tail -n 1 | xargs | sed 's/,$//'
-        )
+        ) || {
+            echo "::error ::Failed to get npm version for: $module_name"
+            {
+              echo "## ❌ Dependency Update Failed"
+              echo ""
+              echo "**Module:** \`$module_name\`"
+              echo ""
+              echo "Reason: Could not find a matching npm version for **MCB $MCB_VERSION**."
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+        }
 
         if [ -z "$npm_version" ]; then
             echo "::error ::Failed to get npm version for: $module_name"
@@ -137,7 +148,17 @@ jq -r '.dependencies[] | "\(.module_name) \(.version)"' manifest.json | \
 
         module_version=$(
             echo "$npm_version" | grep -o '^[0-9.]\+-beta'
-        )
+        ) || {
+            echo "::error ::Failed to parse module version from npm version: $npm_version"
+            {
+              echo "## ❌ Dependency Update Failed"
+              echo ""
+              echo "**Module:** \`$module_name\`"
+              echo ""
+              echo "Reason: Could not parse module version from npm version \`$npm_version\`."
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+        }
 
         echo "$module_name - LAST NPM VERSION: $npm_version - LAST MODULE VERSION: $module_version"
 
