@@ -173,6 +173,23 @@ jq -r '.dependencies[] | "\(.module_name) \(.version)"' manifest.json | \
 jq --arg version "$ADDON_VERSION" '.version = $version' package.json > package.temp.json && \
     mv package.temp.json package.json
 
+# Check if manifest.json was modified or force is true
+if ! git diff --quiet manifest.json || $force; then
+    echo "::notice ::Updating manifest.json to MCB $MCB_VERSION and Addon $ADDON_VERSION"
+else
+    echo "::warning ::manifest.json is already up to date. No changes made."
+    echo "skipped=true" >> "$GITHUB_OUTPUT"
+
+    {
+      echo "## 🚫 Skipped Release"
+      echo ""
+      echo "**Reason:** The \`manifest.json\` file is already up to date with MCB \`$MCB_VERSION\` and Addon \`$ADDON_VERSION\`."
+      echo ""
+      echo "No changes were made and no release will be created."
+    } >> "$GITHUB_STEP_SUMMARY"
+    exit 0
+fi
+
 jq ".header.version = [${ADDON_VERSION_ARRAY[0]}, ${ADDON_VERSION_ARRAY[1]}, ${ADDON_VERSION_ARRAY[2]}] |
     .modules[0].version = [${ADDON_VERSION_ARRAY[0]}, ${ADDON_VERSION_ARRAY[1]}, ${ADDON_VERSION_ARRAY[2]}] |
     .header.min_engine_version = [${MCB_VERSION_ARRAY[0]}, ${MCB_VERSION_ARRAY[1]}, ${MCB_VERSION_ARRAY[2]}]" manifest.json > manifest.temp.json && \
