@@ -183,7 +183,7 @@ else
     {
       echo "## 🚫 Skipped Release"
       echo ""
-      echo "**Reason:** The \`manifest.json\` file is already up to date with MCB \`$MCB_VERSION\` and Addon \`$ADDON_VERSION\`."
+      echo "**Reason:** The \`manifest.json\` file is the same after running the update script. (MCB $MCB_VERSION, Addon $ADDON_PREVIOUS_VERSION)"
       echo ""
       echo "No changes were made and no release will be created."
     } >> "$GITHUB_STEP_SUMMARY"
