@@ -1,11 +1,11 @@
 {
   "name": "event_catcher_mcb_addon",
-  "version": "1.1.20",
+  "version": "1.1.21",
   "description": "Send messages to a specific endpoint",
   "dependencies": {
-    "@minecraft/server": "2.3.0-beta.1.21.111-stable",
-    "@minecraft/server-admin": "1.0.0-beta.1.21.111-stable",
-    "@minecraft/server-net": "1.0.0-beta.1.21.111-stable"
+    "@minecraft/server": "2.4.0-beta.1.21.120-stable",
+    "@minecraft/server-admin": "1.0.0-beta.1.21.120-stable",
+    "@minecraft/server-net": "1.0.0-beta.1.21.120-stable"
   },
   "devDependencies": {
     "typescript": "5.7.2"
