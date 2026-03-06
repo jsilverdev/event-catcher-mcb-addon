@@ -7,12 +7,12 @@
     "version": [
       1,
       1,
-      22
+      23
     ],
     "min_engine_version": [
       1,
-      21,
-      130
+      26,
+      3
     ]
   },
   "modules": [
@@ -24,7 +24,7 @@
       "version": [
         1,
         1,
-        22
+        23
       ],
       "entry": "scripts/main.js"
     }
@@ -32,7 +32,7 @@
   "dependencies": [
     {
       "module_name": "@minecraft/server",
-      "version": "2.5.0-beta"
+      "version": "2.6.0-beta"
     },
     {
       "module_name": "@minecraft/server-net",
