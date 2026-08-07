@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning].
 
 ## [Unreleased]
 
+## [1.1.27] - 2026-08-07
+
+### Changed
+
+- Upgrade dependencies (Compatible with 1.26.40)
+
+
 ## [1.1.26] - 2026-06-19
 
 ### Changed
@@ -206,7 +213,8 @@ and this project adheres to [Semantic Versioning].
 [semantic versioning]: https://semver.org/spec/v2.0.0.html
 
 <!-- Versions -->
-[unreleased]: https://github.com/jsilverdev/event-catcher-mcb-addon/compare/v1.1.26...HEAD
+[unreleased]: https://github.com/jsilverdev/event-catcher-mcb-addon/compare/v1.1.27...HEAD
+[1.1.27]: https://github.com/jsilverdev/event-catcher-mcb-addon/compare/v1.1.26...v1.1.27
 [1.1.26]: https://github.com/jsilverdev/event-catcher-mcb-addon/compare/v1.1.25...v1.1.26
 [1.1.25]: https://github.com/jsilverdev/event-catcher-mcb-addon/compare/v1.1.24...v1.1.25
 [1.1.24]: https://github.com/jsilverdev/event-catcher-mcb-addon/compare/v1.1.23...v1.1.24
